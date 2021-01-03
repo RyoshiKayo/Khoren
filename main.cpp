@@ -11,13 +11,13 @@ int main() {
     static string BOT_TOKEN = "";
 
     if (const char* bot_id = getenv(KHOREN_ENV_BOT_ID)) {
-        BOT_ID = string(bot_id); // 778117382690177024
+        BOT_ID = string(bot_id);
     } else {
         throw invalid_argument(string(KHOREN_ENV_BOT_ID) + " is not set.");
     }
 
     if (const char* bot_token = getenv(KHOREN_ENV_BOT_TOKEN)) {
-        BOT_TOKEN = string(bot_token); // Nzc4MTE3MzgyNjkwMTc3MDI0.X7NUSA.phA3kEf2UVN10oOVrYSFQCvQEN4
+        BOT_TOKEN = string(bot_token);
     } else {
         throw invalid_argument(string(KHOREN_ENV_BOT_TOKEN) + " is not set.");
     }
