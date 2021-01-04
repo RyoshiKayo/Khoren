@@ -11,7 +11,13 @@
 
 namespace Khoren {
 
-    static std::queue<std::vector<std::string>> cmdQueue;
+    struct Command : SleepyDiscord::Message {
+    public:
+        Command(const SleepyDiscord::Message& msg) : SleepyDiscord::Message(msg) {};
+        std::vector<std::string> cmdArgs;
+    };
+
+    static std::queue<Command> cmdQueue;
 
     class DiscordBotClient : public SleepyDiscord::DiscordClient {
     public:
@@ -25,12 +31,14 @@ namespace Khoren {
         void processCommand(SleepyDiscord::Message message)
         {
             using namespace std;
+            message.content.erase(0, BOT_MENTIONED_IN_CONTENT.length() + 1);
 
-            cout << "I was mentioned in " + message.content << endl;
-            if (message.startsWith("ping"))
+            if (message.content.rfind("ping", 0) == 0)
             {
+                cout << "I was mentioned in " + message.content << endl;
                 sendMessage(message.channelID, "pong");
-                parseCmdArgs(message.content);
+                auto cmd = Command(message);
+                parseCmdArgs(cmd);
             }
         }
 
@@ -39,6 +47,7 @@ namespace Khoren {
             if (msg.startsWith(BOT_MENTIONED_IN_CONTENT))
             {
                 /** If the bot is mentioned at the beginning of the message, treat it like a command. */
+
                 processCommand(msg);
             } else if (endsWith(msg.content, BOT_MENTIONED_IN_CONTENT))
             {
@@ -58,15 +67,17 @@ namespace Khoren {
             return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
         }
 
-        static void parseCmdArgs(std::string & messageContents)
+        static void parseCmdArgs(Command & command)
         {
             using namespace std;
             vector<string> args;
-            istringstream iss(messageContents);
+            istringstream iss(command.content);
             copy(istream_iterator<string>(iss),
                  istream_iterator<string>(),
                  back_inserter(args));
-            cmdQueue.push(args);
+
+            command.cmdArgs = args;
+            cmdQueue.push(command);
             print_queue(cmdQueue);
         }
 
@@ -74,12 +85,12 @@ namespace Khoren {
         const std::string * BOT_ID;
         std::string BOT_MENTIONED_IN_CONTENT;
 
-        static void print_queue(std::queue<std::vector<std::string>> q)
+        static void print_queue(std::queue<Command> q)
         {
             while (!q.empty())
             {
-                std::vector<std::string> v = q.front();
-                for (auto const arg : v) {
+                Command cmd = q.front();
+                for (auto const arg : cmd.cmdArgs) {
                     std::cout << arg << " ";
                 }
                 q.pop();
